@@ -373,4 +373,6 @@ credentials to this repository.
 
 ## Licence
 
-MIT. See `LICENSE`.
+This project is licensed under the **MIT License**.
+
+[Read the full MIT License](LICENSE)

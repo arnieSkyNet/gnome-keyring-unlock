@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -u
+
+ASKPASS=/usr/libexec/ssh-askpass/x11-ssh-askpass
+KEY="$HOME/.ssh/id_rsa"
+
+pass="$("$ASKPASS" "Enter SSH/keyring passphrase")" || exit 0
+[ -n "$pass" ] || exit 0
+
+# Unlock the GNOME login keyring.
+printf '%s\n' "$pass" | "$HOME/sbin/gnome-keyring-unlock"
+
+# Give ssh-add the same passphrase through a private askpass helper.
+export GNOME_KEYRING_UNLOCK_PASSPHRASE="$pass"
+
+SSH_ASKPASS_REQUIRE=force \
+SSH_ASKPASS="$HOME/sbin/gnome-keyring-unlock-ssh-passphrase" \
+setsid -f ssh-add "$KEY" </dev/null >/dev/null 2>&1
+
+unset GNOME_KEYRING_UNLOCK_PASSPHRASE
+unset pass
+
+# Optional: make GNOME Online Accounts retry after the keyring is available.
+sleep 1
+killall goa-daemon 2>/dev/null || true
+
+exit 0

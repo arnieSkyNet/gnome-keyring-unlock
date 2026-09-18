@@ -46,15 +46,48 @@ The utility has no third-party Rust dependencies.
 - An already-running `gnome-keyring-daemon`
 - Rust toolchain when building from source
 
+## Download
+
+For most users, the easiest installation method is to download a
+pre-built binary from the GitHub Releases page:
+
+https://github.com/arnieSkyNet/gnome-keyring-unlock/releases
+
+Download the Linux binary appropriate for your system.
+
+Create a personal executable directory if necessary:
+
+    mkdir -p "$HOME/sbin"
+
+Install the downloaded binary:
+
+    install -m 700 ./gnome-keyring-unlock "$HOME/sbin/gnome-keyring-unlock"
+
+The release download avoids the need to install Rust or Cargo.
+
+If there is not yet a suitable pre-built binary for your system, use
+the **Build** instructions below.
+
 ## Build
 
-Clone the repository and build the release executable:
+To build from source, first clone the GitHub repository:
+
+    git clone https://github.com/arnieSkyNet/gnome-keyring-unlock.git
+    cd gnome-keyring-unlock
+
+Build the optimised release executable:
 
     cargo build --release
+
+Run the automated protocol tests:
+
+    cargo test
 
 The resulting native executable is:
 
     target/release/gnome-keyring-unlock
+
+Continue with the **Install** section below to install it for your user account.
 
 ## Install
 
@@ -106,6 +139,141 @@ Example integration scripts are provided in the `examples` directory.
 The examples are not required by the Rust utility itself. Desktop startup,
 SSH agents, askpass implementations and online-account services vary between
 Linux installations.
+
+
+### Optional SSH integration
+
+An SSH agent is not required to unlock GNOME Keyring.
+
+The supplied one-prompt controller always attempts to unlock the GNOME login
+keyring. It will additionally load the configured SSH private key only when:
+
+- an SSH agent is available through `SSH_AUTH_SOCK`; and
+- the configured SSH private-key file exists.
+
+This project does not start or manage an SSH agent.
+
+To check whether an SSH agent is available in your graphical session:
+
+    if [ -n "${SSH_AUTH_SOCK-}" ]; then
+        echo "SSH agent available: $SSH_AUTH_SOCK"
+    else
+        echo "No SSH agent is available - GNOME Keyring unlocking can still be used"
+    fi
+
+If an agent is available, you can see which identities it currently contains:
+
+    ssh-add -l
+
+If you do not use SSH keys, no SSH configuration is required.
+
+### Install the one-prompt launcher
+
+The repository contains the controller and its private SSH askpass helper.
+
+Install them with:
+
+    mkdir -p "$HOME/sbin"
+
+    install -m 700 \
+        examples/one-prompt-login \
+        "$HOME/sbin/gnome-keyring-one-prompt-login"
+
+    install -m 700 \
+        examples/gnome-keyring-unlock-ssh-passphrase \
+        "$HOME/sbin/gnome-keyring-unlock-ssh-passphrase"
+
+The controller expects the main Rust utility at:
+
+    $HOME/sbin/gnome-keyring-unlock
+
+The supplied controller uses this SSH private key:
+
+    $HOME/.ssh/id_rsa
+
+If your encrypted SSH private key has another name, edit the installed
+controller and change its `KEY=` line. For example, an Ed25519 key might use:
+
+    KEY="$HOME/.ssh/id_ed25519"
+
+Never put the SSH passphrase itself in the script.
+
+### Graphical askpass program
+
+The example controller uses:
+
+    /usr/libexec/ssh-askpass/x11-ssh-askpass
+
+Check whether that program exists on your system:
+
+    test -x /usr/libexec/ssh-askpass/x11-ssh-askpass \
+        && echo "x11-ssh-askpass found" \
+        || echo "x11-ssh-askpass not found at this path"
+
+Askpass implementations and their locations vary between Linux
+distributions. If yours is elsewhere, change the `ASKPASS=` line in the
+installed controller.
+
+
+### Test the launcher before enabling autostart
+
+Do not reboot immediately after installing the one-prompt setup.
+
+If you are using the optional SSH integration, you can check the agent first:
+
+    test -n "${SSH_AUTH_SOCK-}" \
+        && echo "SSH agent available" \
+        || echo "No SSH agent available - SSH loading will be skipped"
+
+Then run the controller manually:
+
+    "$HOME/sbin/gnome-keyring-one-prompt-login"
+
+You should receive one graphical passphrase prompt.
+
+After entering the passphrase, use the verification commands in the next
+section to confirm that the GNOME login keyring is unlocked.
+
+If you are using the optional SSH integration, also run:
+
+    ssh-add -l
+
+Your configured SSH key should be listed.
+
+Only enable automatic startup after this manual test works.
+
+### Start automatically after graphical login
+
+An example desktop autostart file is supplied as:
+
+    examples/gnome-keyring-one-prompt-login.desktop
+
+Create the autostart directory if necessary and install the file:
+
+    mkdir -p "$HOME/.config/autostart"
+
+    install -m 600 \
+        examples/gnome-keyring-one-prompt-login.desktop \
+        "$HOME/.config/autostart/gnome-keyring-one-prompt-login.desktop"
+
+On the next graphical login, the desktop will start the controller, which
+will display the single graphical passphrase prompt.
+
+The desktop file contains no password or passphrase.
+
+### Disable the automatic launcher
+
+To disable the launcher without deleting it:
+
+    mv \
+        "$HOME/.config/autostart/gnome-keyring-one-prompt-login.desktop" \
+        "$HOME/.config/autostart/gnome-keyring-one-prompt-login.desktop.disabled"
+
+To enable it again:
+
+    mv \
+        "$HOME/.config/autostart/gnome-keyring-one-prompt-login.desktop.disabled" \
+        "$HOME/.config/autostart/gnome-keyring-one-prompt-login.desktop"
 
 ## Verify that the login keyring is unlocked
 

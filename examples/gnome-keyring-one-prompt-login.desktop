@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=GNOME Keyring One-Prompt Login
+Comment=Unlock GNOME Keyring and optionally load an SSH key
+Exec=/bin/sh -c "\\$HOME/sbin/gnome-keyring-one-prompt-login"
+StartupNotify=false
+Terminal=false

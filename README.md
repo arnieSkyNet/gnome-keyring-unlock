@@ -104,8 +104,9 @@ Adjust the destination if `$HOME/sbin` is not appropriate on your system.
 
 The utility reads the password from standard input.
 
-Do not put the password directly in a command-line argument, script, desktop
-file or Git repository.
+> [!WARNING]
+> **NEVER PUT YOUR GNOME KEYRING PASSWORD OR SSH PASSPHRASE DIRECTLY IN A COMMAND, SCRIPT, DESKTOP FILE OR GIT REPOSITORY.**
+> Enter secrets only through a trusted interactive prompt.
 
 It is intended to be called by a trusted interactive helper which obtains the
 password from the user and supplies it to `gnome-keyring-unlock` through
@@ -196,7 +197,9 @@ controller and change its `KEY=` line. For example, an Ed25519 key might use:
 
     KEY="$HOME/.ssh/id_ed25519"
 
-Never put the SSH passphrase itself in the script.
+> [!WARNING]
+> **NEVER PUT YOUR SSH PASSPHRASE OR GNOME KEYRING PASSWORD IN THE SCRIPT.**
+> The passphrase should only be entered into the graphical prompt when requested.
 
 ### Graphical askpass program
 

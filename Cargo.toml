@@ -2,5 +2,8 @@
 name = "gnome-keyring-unlock"
 version = "0.1.0"
 edition = "2021"
+description = "Unlock an existing GNOME login keyring through the keyring daemon control socket"
+license = "MIT"
+repository = "https://github.com/arnieSkyNet/gnome-keyring-unlock"
 
 [dependencies]

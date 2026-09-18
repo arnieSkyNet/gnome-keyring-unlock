@@ -1,5 +1,7 @@
 # GNOME Keyring Unlock
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A small native Rust utility for unlocking an existing GNOME login keyring by
 communicating directly with the running `gnome-keyring-daemon` control socket.
 
